@@ -19,7 +19,7 @@ jobs:
       - name: Checkout McMMO
         uses: actions/checkout@v4
         with:
-          repository: 'mcMMO-Dev/mcMMO/'
+          repository: 'mcMMO-Dev/mcMMO'
           path: mcmmo-source
           fetch-depth: 0
 
