@@ -1,4 +1,4 @@
-name: NasBuild
+name: Build-McMMO
 
 on:
   schedule:
