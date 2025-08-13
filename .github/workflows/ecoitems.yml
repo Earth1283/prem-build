@@ -1,0 +1,84 @@
+name: Build-ecoItems
+
+on:
+  schedule:
+    - cron: '0 0 */1 * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      # Checkout McMMo source code
+      - name: Checkout McMMO
+        uses: actions/checkout@v4
+        with:
+          repository: 'Auxilor/EcoItems'
+          path: ecoitem-source
+          fetch-depth: 0
+
+      # Set up JDK 21
+      - name: Set up JDK 21
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+          cache: 'maven'
+
+      # Build with Maven
+      - name: Build with Maven
+        working-directory: ./ecoitem-source
+        run: |
+          mvn -B clean package -DskipTests \
+              -Dmaven.compiler.source=21 \
+              -Dmaven.compiler.target=21 \
+              -Dmaven.compiler.release=21
+
+      # Find the built JAR
+      - name: Locate JAR
+        id: locate-jar
+        working-directory: ./ecoitem-source
+        run: |
+          JAR_PATH=$(find target -name '*.jar' ! -name '*-tests.jar' ! -name 'original-*.jar' | head -1)
+          echo "jar_name=${JAR_PATH##*/}" >> $GITHUB_OUTPUT
+          echo "jar_path=$PWD/$JAR_PATH" >> $GITHUB_OUTPUT
+
+      # Generate release info with proper formatting
+      - name: Generate release info
+        id: release-info
+        run: |
+          # Simple date variables
+          RELEASE_DATE=$(date +'%Y-%m-%d')
+          TAG_DATE=$(date +'%Y%m%d')
+          BUILD_DATE=$(date -u +'%Y-%m-%d %H:%M:%S UTC')
+          
+          # Create release body file with actual newlines
+          cat << EOF > release_body.md
+          Automated build of EcoItems
+          - Commit: ${{ github.sha }}
+          - Java: 21
+          - Build date: $BUILD_DATE
+          EOF
+          
+          # Set outputs
+          echo "release_date=$RELEASE_DATE" >> $GITHUB_OUTPUT
+          echo "tag_date=$TAG_DATE" >> $GITHUB_OUTPUT
+
+      # Create release using the body file
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: "auto-build-${{ steps.release-info.outputs.tag_date }}"
+          name: "EcoItems At ${{ steps.release-info.outputs.release_date }}"
+          body_path: release_body.md
+          files: |
+            ${{ steps.locate-jar.outputs.jar_path }}
+          draft: false
+          prerelease: false
+          token: ${{ secrets.GITHUB_TOKEN }}
