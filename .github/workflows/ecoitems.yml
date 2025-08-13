@@ -15,37 +15,39 @@ jobs:
       contents: write
 
     steps:
-      # Checkout McMMo source code
-      - name: Checkout McMMO
+      # Checkout Ecoitems source code
+      - name: Checkout EcoItems
         uses: actions/checkout@v4
         with:
           repository: 'Auxilor/EcoItems'
           path: ecoitem-source
           fetch-depth: 0
 
-      # Set up JDK 21
+      # Set up JDK 21 and cache Gradle dependencies
       - name: Set up JDK 21
         uses: actions/setup-java@v3
         with:
           distribution: 'temurin'
           java-version: '21'
-          cache: 'maven'
+          cache: 'gradle' # Switched to cache Gradle
 
-      # Build with Maven
-      - name: Build with Maven
+      # Grant execute permission for gradlew
+      - name: Make gradlew executable
         working-directory: ./ecoitem-source
-        run: |
-          mvn -B clean package -DskipTests \
-              -Dmaven.compiler.source=21 \
-              -Dmaven.compiler.target=21 \
-              -Dmaven.compiler.release=21
+        run: chmod +x ./gradlew
+
+      # Build with Gradle
+      - name: Build with Gradle
+        working-directory: ./ecoitem-source
+        run: ./gradlew build -x test
 
       # Find the built JAR
       - name: Locate JAR
         id: locate-jar
         working-directory: ./ecoitem-source
         run: |
-          JAR_PATH=$(find target -name '*.jar' ! -name '*-tests.jar' ! -name 'original-*.jar' | head -1)
+          # Gradle outputs to build/libs, not target/
+          JAR_PATH=$(find build/libs -name '*.jar' ! -name '*-sources.jar' ! -name '*-javadoc.jar' | head -1)
           echo "jar_name=${JAR_PATH##*/}" >> $GITHUB_OUTPUT
           echo "jar_path=$PWD/$JAR_PATH" >> $GITHUB_OUTPUT
 
@@ -53,12 +55,10 @@ jobs:
       - name: Generate release info
         id: release-info
         run: |
-          # Simple date variables
           RELEASE_DATE=$(date +'%Y-%m-%d')
           TAG_DATE=$(date +'%Y%m%d')
           BUILD_DATE=$(date -u +'%Y-%m-%d %H:%M:%S UTC')
           
-          # Create release body file with actual newlines
           cat << EOF > release_body.md
           Automated build of EcoItems
           - Commit: ${{ github.sha }}
@@ -66,7 +66,6 @@ jobs:
           - Build date: $BUILD_DATE
           EOF
           
-          # Set outputs
           echo "release_date=$RELEASE_DATE" >> $GITHUB_OUTPUT
           echo "tag_date=$TAG_DATE" >> $GITHUB_OUTPUT
 
