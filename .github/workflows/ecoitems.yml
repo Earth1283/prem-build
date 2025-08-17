@@ -39,7 +39,7 @@ jobs:
       # Build with Gradle
       - name: Build with Gradle
         working-directory: ./ecoitem-source
-        run: ./gradlew build -x test
+        run: ./gradlew clean build -x test
 
       # Find the built JAR
       - name: Locate JAR
