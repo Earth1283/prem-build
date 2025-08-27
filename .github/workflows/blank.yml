@@ -1,7 +1,4 @@
-# .github/workflows/scheduled-release.yml
-
-# Name of the GitHub Action workflow. This is displayed in the "Actions" tab of your repository.
-name: Scheduled Daily Release
+name: Build Iris
 
 # Controls when the action will run.
 on:
