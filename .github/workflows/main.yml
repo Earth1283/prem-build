@@ -45,7 +45,7 @@ jobs:
         id: locate-jar
         working-directory: ./mcmmo-source
         run: |
-          JAR_PATH=$(find target -name '*.jar' ! -name '*-tests.jar' ! -name 'original-*.jar' | head -1)
+          JAR_PATH=$(find target -name 'mcMMO*.jar' ! -name '*-tests.jar' ! -name 'original-*.jar' | head -1)
           echo "jar_name=${JAR_PATH##*/}" >> $GITHUB_OUTPUT
           echo "jar_path=$PWD/$JAR_PATH" >> $GITHUB_OUTPUT
 
