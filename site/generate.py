@@ -20,6 +20,8 @@ PLUGINS = {
     "MCMMO": {"tag_prefix": "mcMMO-build"},
     "IRIS": {"tag_prefix": "iris-build"},
     "ECO": {"tag_prefix": "auto-build"},
+    "COREPROTECT": {"tag_prefix": "coreprotect-build"},
+    "NASCRAFT": {"tag_prefix": "nascraft-build"},
 }
 
 

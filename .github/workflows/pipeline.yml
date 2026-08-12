@@ -24,10 +24,16 @@ jobs:
   build-ecoitems:
     uses: ./.github/workflows/build-ecoitems.yml
 
-  # Runs only once all three builds above have finished (succeeded or not),
+  build-coreprotect:
+    uses: ./.github/workflows/build-coreprotect.yml
+
+  build-nascraft:
+    uses: ./.github/workflows/build-nascraft.yml
+
+  # Runs only once all builds above have finished (succeeded or not),
   # so the page always reflects the latest completed run of every project.
   deploy-pages:
-    needs: [build-mcmmo, build-iris, build-ecoitems]
+    needs: [build-mcmmo, build-iris, build-ecoitems, build-coreprotect, build-nascraft]
     if: always()
     runs-on: ubuntu-latest
 
@@ -66,6 +72,16 @@ jobs:
           ECO_JAR: ${{ needs.build-ecoitems.outputs.jar_name }}
           ECO_URL: ${{ needs.build-ecoitems.outputs.download_url }}
           ECO_SIZE: ${{ needs.build-ecoitems.outputs.file_size }}
+          COREPROTECT_RESULT: ${{ needs.build-coreprotect.result }}
+          COREPROTECT_TAG: ${{ needs.build-coreprotect.outputs.tag_name }}
+          COREPROTECT_JAR: ${{ needs.build-coreprotect.outputs.jar_name }}
+          COREPROTECT_URL: ${{ needs.build-coreprotect.outputs.download_url }}
+          COREPROTECT_SIZE: ${{ needs.build-coreprotect.outputs.file_size }}
+          NASCRAFT_RESULT: ${{ needs.build-nascraft.result }}
+          NASCRAFT_TAG: ${{ needs.build-nascraft.outputs.tag_name }}
+          NASCRAFT_JAR: ${{ needs.build-nascraft.outputs.jar_name }}
+          NASCRAFT_URL: ${{ needs.build-nascraft.outputs.download_url }}
+          NASCRAFT_SIZE: ${{ needs.build-nascraft.outputs.file_size }}
         run: python3 site/generate.py
 
       - name: Upload Pages artifact

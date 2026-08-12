@@ -4,31 +4,32 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Prem Build — Automated Plugin Builds</title>
-<meta name="description" content="Nightly automated compiles of mcMMO, Iris and EcoItems, published as one-click downloads." />
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' rx='6' fill='%23050505'/%3E%3Cpath d='M7 12.5l3.2 3.2L17 9' stroke='%2334d399' stroke-width='1.6' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E" />
-<link rel="preconnect" href="https://api.fontshare.com" crossorigin />
-<link rel="stylesheet" href="https://api.fontshare.com/v2/css?f[]=clash-display@400,500,600,700&f[]=satoshi@400,500,700&display=swap" />
+<meta name="description" content="Nightly automated compiles of mcMMO, Iris, EcoItems, CoreProtect and Nascraft, published as one-click downloads." />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' rx='6' fill='%231d1d1f'/%3E%3Cpath d='M7 12.5l3.2 3.2L17 9' stroke='%23ffffff' stroke-width='1.7' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E" />
 <style>
   :root{
-    --bg:#050505;
-    --bg-elevated:#0b0b0c;
-    --ink:#f4f4f2;
-    --ink-dim:rgba(244,244,242,0.62);
-    --ink-faint:rgba(244,244,242,0.38);
-    --hairline:rgba(255,255,255,0.09);
-    --hairline-soft:rgba(255,255,255,0.06);
-    --glass:rgba(255,255,255,0.035);
-    --glass-strong:rgba(255,255,255,0.06);
-    --emerald:#34d399;
-    --emerald-dim:rgba(52,211,153,0.16);
-    --violet:#a78bfa;
-    --amber:#fbbf24;
-    --red:#fb7185;
+    --bg:#f5f5f7;
+    --bg-elevated:#ffffff;
+    --ink:#1d1d1f;
+    --ink-dim:rgba(29,29,31,0.68);
+    --ink-faint:rgba(29,29,31,0.46);
+    --hairline:rgba(0,0,0,0.09);
+    --hairline-soft:rgba(0,0,0,0.06);
+    --glass:rgba(255,255,255,0.6);
+    --glass-strong:rgba(255,255,255,0.85);
+    --blue:#0071e3;
+    --blue-hover:#0077ed;
+    --blue-dim:rgba(0,113,227,0.1);
+    --green:#30d158;
+    --green-dim:rgba(48,209,88,0.14);
+    --amber:#ff9f0a;
+    --amber-dim:rgba(255,159,10,0.14);
+    --red:#ff3b30;
+    --red-dim:rgba(255,59,48,0.12);
     --ease:cubic-bezier(0.32,0.72,0,1);
-    --z-grain:5;
     --z-nav:40;
-    --font-display:"Clash Display","Satoshi",system-ui,sans-serif;
-    --font-body:"Satoshi",system-ui,sans-serif;
+    --font-display:-apple-system,BlinkMacSystemFont,"SF Pro Display","SF Pro Text","Helvetica Neue",Arial,sans-serif;
+    --font-body:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",Arial,sans-serif;
   }
 
   *{margin:0;padding:0;box-sizing:border-box;}
@@ -44,150 +45,114 @@
   a{color:inherit;text-decoration:none;}
   button{font-family:inherit;border:none;background:none;color:inherit;cursor:pointer;}
 
-  /* ---------- grain overlay ---------- */
-  .grain{
-    position:fixed;inset:0;z-index:var(--z-grain);
-    pointer-events:none;
-    opacity:0.035;
-    mix-blend-mode:overlay;
-    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-  }
-
-  /* ---------- ambient glow ---------- */
-  .glow-field{
-    position:fixed;inset:0;z-index:0;overflow:hidden;pointer-events:none;
-  }
-  .glow{
-    position:absolute;border-radius:50%;filter:blur(90px);
-    will-change:transform;
-  }
-  .glow--emerald{
-    width:640px;height:640px;top:-220px;left:-160px;
-    background:radial-gradient(circle,rgba(52,211,153,0.28),transparent 70%);
-    animation:drift-a 26s var(--ease) infinite alternate;
-  }
-  .glow--violet{
-    width:560px;height:560px;top:20%;right:-200px;
-    background:radial-gradient(circle,rgba(167,139,250,0.22),transparent 70%);
-    animation:drift-b 32s var(--ease) infinite alternate;
-  }
-  .glow--amber{
-    width:420px;height:420px;bottom:-180px;left:30%;
-    background:radial-gradient(circle,rgba(251,191,36,0.10),transparent 70%);
-    animation:drift-c 30s var(--ease) infinite alternate;
-  }
-  @keyframes drift-a{from{transform:translate(0,0) scale(1);}to{transform:translate(60px,50px) scale(1.08);}}
-  @keyframes drift-b{from{transform:translate(0,0) scale(1);}to{transform:translate(-70px,40px) scale(0.95);}}
-  @keyframes drift-c{from{transform:translate(0,0) scale(1);}to{transform:translate(40px,-30px) scale(1.05);}}
-
   .wrap{position:relative;z-index:1;max-width:1180px;margin:0 auto;padding:0 24px;}
 
   /* ---------- nav ---------- */
-  .nav-shell{position:sticky;top:0;z-index:var(--z-nav);display:flex;justify-content:center;padding-top:22px;}
+  .nav-shell{position:sticky;top:0;z-index:var(--z-nav);}
   .nav{
-    display:flex;align-items:center;gap:28px;
-    padding:10px 10px 10px 20px;
-    background:rgba(10,10,10,0.55);
-    backdrop-filter:blur(24px) saturate(140%);
-    -webkit-backdrop-filter:blur(24px) saturate(140%);
-    border:1px solid var(--hairline);
-    border-radius:999px;
-    box-shadow:inset 0 1px 1px rgba(255,255,255,0.06), 0 20px 40px -20px rgba(0,0,0,0.6);
+    display:flex;align-items:center;justify-content:space-between;gap:28px;
+    height:52px;padding:0 22px;
+    background:var(--glass-strong);
+    backdrop-filter:blur(20px) saturate(180%);
+    -webkit-backdrop-filter:blur(20px) saturate(180%);
+    border-bottom:1px solid var(--hairline-soft);
   }
   .nav__brand{display:flex;align-items:center;gap:8px;font-family:var(--font-display);font-weight:600;font-size:14px;letter-spacing:0.01em;white-space:nowrap;}
-  .nav__brand .dot{width:7px;height:7px;border-radius:50%;background:var(--emerald);box-shadow:0 0 0 3px var(--emerald-dim);animation:pulse 2.4s ease-in-out infinite;}
+  .nav__brand .dot{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 0 3px var(--green-dim);animation:pulse 2.4s ease-in-out infinite;}
   @keyframes pulse{0%,100%{opacity:1;}50%{opacity:0.45;}}
-  .nav__links{display:flex;align-items:center;gap:22px;font-size:13px;color:var(--ink-dim);}
-  .nav__links a{transition:color 0.4s var(--ease);}
+  .nav__links{display:flex;align-items:center;gap:26px;font-size:12.5px;color:var(--ink-dim);}
+  .nav__links a{transition:color 0.3s var(--ease);}
   .nav__links a:hover{color:var(--ink);}
   .nav__cta{
-    display:flex;align-items:center;gap:8px;
-    padding:9px 16px;border-radius:999px;
-    background:var(--glass-strong);
-    border:1px solid var(--hairline);
-    font-size:13px;font-weight:500;
-    transition:background 0.5s var(--ease),transform 0.4s var(--ease);
+    display:flex;align-items:center;gap:6px;
+    padding:7px 15px;border-radius:999px;
+    background:var(--blue);color:#fff;
+    font-size:12.5px;font-weight:500;
+    transition:background 0.3s var(--ease),transform 0.3s var(--ease);
   }
-  .nav__cta:hover{background:rgba(255,255,255,0.1);transform:translateY(-1px);}
+  .nav__cta:hover{background:var(--blue-hover);transform:translateY(-1px);}
   @media (max-width:720px){
     .nav__links{display:none;}
     .nav{gap:14px;}
   }
 
   /* ---------- hero ---------- */
-  .hero{padding:96px 0 64px;text-align:center;}
+  .hero{padding:88px 0 56px;text-align:center;}
   .eyebrow{
     display:inline-flex;align-items:center;gap:8px;
     padding:6px 14px;border-radius:999px;
-    background:var(--glass);border:1px solid var(--hairline);
-    font-size:10.5px;font-weight:600;text-transform:uppercase;letter-spacing:0.22em;
+    background:#fff;border:1px solid var(--hairline);
+    font-size:10.5px;font-weight:600;text-transform:uppercase;letter-spacing:0.2em;
     color:var(--ink-dim);
-    margin-bottom:28px;
+    margin-bottom:26px;
+    box-shadow:0 1px 2px rgba(0,0,0,0.02);
   }
-  .eyebrow .dot{width:6px;height:6px;border-radius:50%;background:var(--emerald);}
+  .eyebrow .dot{width:6px;height:6px;border-radius:50%;background:var(--green);}
   h1.headline{
     font-family:var(--font-display);
-    font-weight:600;
-    font-size:clamp(2.6rem,6.2vw,4.6rem);
-    line-height:1.04;
-    letter-spacing:-0.02em;
-    max-width:820px;
-    margin:0 auto 24px;
+    font-weight:700;
+    font-size:clamp(2.5rem,6vw,4.2rem);
+    line-height:1.06;
+    letter-spacing:-0.022em;
+    max-width:780px;
+    margin:0 auto 22px;
+    color:var(--ink);
   }
   h1.headline .accent{
-    background:linear-gradient(100deg,var(--emerald),var(--violet) 80%);
+    background:linear-gradient(100deg,var(--blue),#5e5ce6 80%);
     -webkit-background-clip:text;background-clip:text;color:transparent;
   }
   .sub{
-    font-size:17px;line-height:1.65;color:var(--ink-dim);
-    max-width:560px;margin:0 auto 40px;
+    font-size:18px;line-height:1.6;color:var(--ink-dim);
+    max-width:560px;margin:0 auto 38px;
+    font-weight:400;
   }
-  .hero__actions{display:flex;align-items:center;justify-content:center;gap:20px;flex-wrap:wrap;}
+  .hero__actions{display:flex;align-items:center;justify-content:center;gap:22px;flex-wrap:wrap;}
 
   /* ---------- pill buttons + button-in-button ---------- */
   .pill{
     display:inline-flex;align-items:center;gap:10px;
-    padding:14px 8px 14px 26px;
+    padding:13px 8px 13px 24px;
     border-radius:999px;
-    font-size:14.5px;font-weight:600;
-    transition:transform 0.45s var(--ease),background 0.45s var(--ease);
+    font-size:14.5px;font-weight:500;
+    transition:transform 0.4s var(--ease),background 0.4s var(--ease);
   }
   .pill:active{transform:scale(0.97);}
-  .pill--primary{background:var(--ink);color:#0a0a0a;}
-  .pill--primary:hover{transform:translateY(-2px);}
+  .pill--primary{background:var(--blue);color:#fff;}
+  .pill--primary:hover{background:var(--blue-hover);transform:translateY(-1px);}
   .pill__icon{
-    width:34px;height:34px;border-radius:50%;
+    width:32px;height:32px;border-radius:50%;
     display:flex;align-items:center;justify-content:center;
-    background:rgba(0,0,0,0.08);
+    background:rgba(255,255,255,0.18);
     transition:transform 0.5s var(--ease);
   }
-  .pill--primary .pill__icon{background:rgba(0,0,0,0.1);}
+  .pill--primary .pill__icon{background:rgba(255,255,255,0.2);}
   .group:hover .pill__icon{transform:translate(2px,-2px) scale(1.06);}
   .pill--ghost{
-    padding:13px 22px;
+    padding:12px 22px;
     color:var(--ink-dim);
     border:1px solid var(--hairline);
-    background:var(--glass);
+    background:#fff;
   }
-  .pill--ghost:hover{color:var(--ink);border-color:rgba(255,255,255,0.18);}
+  .pill--ghost:hover{color:var(--ink);border-color:rgba(0,0,0,0.16);}
   .pill--download{
-    background:var(--ink);color:#0a0a0a;
+    background:var(--ink);color:#fff;
     width:100%;justify-content:space-between;
   }
-  .pill--download .pill__icon{background:rgba(0,0,0,0.1);}
-  .pill--download:hover{transform:translateY(-2px);}
+  .pill--download .pill__icon{background:rgba(255,255,255,0.14);}
+  .pill--download:hover{background:#000;transform:translateY(-1px);}
 
   /* ---------- search ---------- */
-  .search-row{display:flex;justify-content:center;margin:8px 0 48px;}
+  .search-row{display:flex;justify-content:center;margin:6px 0 46px;}
   .search{
     display:flex;align-items:center;gap:10px;
     width:100%;max-width:420px;
-    padding:13px 18px;border-radius:999px;
-    background:var(--glass);border:1px solid var(--hairline);
-    transition:border-color 0.4s var(--ease),background 0.4s var(--ease);
+    padding:12px 18px;border-radius:999px;
+    background:#fff;border:1px solid var(--hairline);
+    transition:border-color 0.3s var(--ease),box-shadow 0.3s var(--ease);
   }
-  .search:focus-within{border-color:rgba(255,255,255,0.22);background:var(--glass-strong);}
-  .search svg{flex-shrink:0;opacity:0.5;}
+  .search:focus-within{border-color:var(--blue);box-shadow:0 0 0 4px var(--blue-dim);}
+  .search svg{flex-shrink:0;opacity:0.45;}
   .search input{
     flex:1;background:none;border:none;outline:none;color:var(--ink);
     font-size:14px;font-family:var(--font-body);
@@ -198,31 +163,31 @@
 
   /* ---------- section heading ---------- */
   .section-head{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:22px;flex-wrap:wrap;gap:12px;}
-  .section-head h2{font-family:var(--font-display);font-weight:600;font-size:1.5rem;letter-spacing:-0.01em;}
+  .section-head h2{font-family:var(--font-display);font-weight:700;font-size:1.5rem;letter-spacing:-0.015em;}
   .section-head span{font-size:13px;color:var(--ink-faint);}
 
   /* ---------- bento grid ---------- */
   .bento{
     display:grid;grid-template-columns:repeat(12,1fr);
-    gap:20px;padding-bottom:40px;
+    gap:18px;padding-bottom:40px;
   }
   .empty-state{
     grid-column:1 / -1;text-align:center;padding:60px 20px;
     color:var(--ink-faint);font-size:14px;display:none;
   }
 
-  /* double-bezel shell */
+  /* card shell */
   .shell{
-    padding:6px;border-radius:2rem;
-    background:var(--glass);
-    border:1px solid var(--hairline-soft);
-  }
-  .core{
-    border-radius:calc(2rem - 6px);
+    border-radius:1.6rem;
     background:var(--bg-elevated);
-    box-shadow:inset 0 1px 1px rgba(255,255,255,0.05);
+    border:1px solid var(--hairline-soft);
+    box-shadow:0 1px 2px rgba(0,0,0,0.03), 0 16px 32px -20px rgba(0,0,0,0.12);
+    transition:transform 0.4s var(--ease),box-shadow 0.4s var(--ease);
+  }
+  .shell:hover{transform:translateY(-2px);box-shadow:0 1px 2px rgba(0,0,0,0.03), 0 24px 40px -20px rgba(0,0,0,0.16);}
+  .core{
     height:100%;
-    padding:32px;
+    padding:30px;
     display:flex;flex-direction:column;
   }
 
@@ -236,29 +201,29 @@
   }
 
   .card__top{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:6px;}
-  .card__name{font-family:var(--font-display);font-weight:600;font-size:1.7rem;letter-spacing:-0.01em;}
+  .card__name{font-family:var(--font-display);font-weight:700;font-size:1.6rem;letter-spacing:-0.015em;}
   .card__source{font-size:13px;color:var(--ink-faint);margin-bottom:22px;}
   .card__source a{border-bottom:1px solid transparent;transition:border-color 0.3s var(--ease),color 0.3s var(--ease);}
   .card__source a:hover{color:var(--ink-dim);border-color:var(--hairline);}
 
-  .status{display:flex;align-items:center;gap:7px;padding:6px 12px 6px 10px;border-radius:999px;background:var(--glass);border:1px solid var(--hairline);font-size:12px;font-weight:500;white-space:nowrap;}
+  .status{display:flex;align-items:center;gap:7px;padding:6px 12px 6px 10px;border-radius:999px;background:var(--bg);border:1px solid var(--hairline);font-size:12px;font-weight:500;white-space:nowrap;}
   .status .dot{width:6px;height:6px;border-radius:50%;}
-  .status--pass .dot{background:var(--emerald);box-shadow:0 0 0 3px var(--emerald-dim);}
-  .status--pass{color:var(--emerald);}
+  .status--pass .dot{background:var(--green);box-shadow:0 0 0 3px var(--green-dim);}
+  .status--pass{color:#1a9c46;}
   .status--fail .dot{background:var(--red);}
   .status--fail{color:var(--red);}
   .status--unknown .dot{background:var(--amber);}
-  .status--unknown{color:var(--amber);}
+  .status--unknown{color:#b36b00;}
 
   .meta-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:26px;}
   .meta-grid div{display:flex;flex-direction:column;gap:4px;}
-  .meta-label{font-size:10.5px;text-transform:uppercase;letter-spacing:0.14em;color:var(--ink-faint);}
-  .meta-value{font-size:14px;font-weight:500;color:var(--ink-dim);}
+  .meta-label{font-size:10.5px;text-transform:uppercase;letter-spacing:0.13em;color:var(--ink-faint);}
+  .meta-value{font-size:14px;font-weight:600;color:var(--ink);}
 
   .card__footer{margin-top:auto;display:flex;flex-direction:column;gap:12px;}
   .card__filename{font-size:12.5px;color:var(--ink-faint);text-align:center;}
   .release-link{font-size:12.5px;color:var(--ink-faint);text-align:center;transition:color 0.3s var(--ease);}
-  .release-link:hover{color:var(--ink-dim);}
+  .release-link:hover{color:var(--blue);}
 
   /* info card (how it works) */
   .steps{display:flex;flex-direction:column;gap:22px;margin-top:6px;}
@@ -266,8 +231,8 @@
   .step__index{
     flex-shrink:0;width:30px;height:30px;border-radius:50%;
     display:flex;align-items:center;justify-content:center;
-    background:var(--glass-strong);border:1px solid var(--hairline);
-    font-size:12px;font-weight:600;color:var(--ink-dim);
+    background:var(--blue-dim);border:1px solid rgba(0,113,227,0.18);
+    font-size:12px;font-weight:700;color:var(--blue);
   }
   .step__title{font-size:14.5px;font-weight:600;margin-bottom:3px;}
   .step__desc{font-size:13px;color:var(--ink-faint);line-height:1.55;}
@@ -276,16 +241,16 @@
   footer{border-top:1px solid var(--hairline-soft);padding:32px 0 48px;margin-top:20px;}
   .footer-row{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;font-size:12.5px;color:var(--ink-faint);}
   .footer-row a{transition:color 0.3s var(--ease);}
-  .footer-row a:hover{color:var(--ink-dim);}
+  .footer-row a:hover{color:var(--blue);}
   .footer-links{display:flex;gap:20px;}
 
   /* ---------- reveal ---------- */
-  .reveal{opacity:0;transform:translateY(40px);filter:blur(6px);transition:opacity 0.9s var(--ease),transform 0.9s var(--ease),filter 0.9s var(--ease);}
-  .reveal.in-view{opacity:1;transform:translateY(0);filter:blur(0);}
+  .reveal{opacity:0;transform:translateY(32px);transition:opacity 0.8s var(--ease),transform 0.8s var(--ease);}
+  .reveal.in-view{opacity:1;transform:translateY(0);}
 
   @media (max-width:640px){
-    .hero{padding:76px 0 40px;}
-    .core{padding:26px;}
+    .hero{padding:64px 0 36px;}
+    .core{padding:24px;}
     .meta-grid{grid-template-columns:repeat(3,1fr);gap:10px;}
     .footer-row{flex-direction:column;align-items:flex-start;}
   }
@@ -293,16 +258,9 @@
 </head>
 <body>
 
-  <div class="grain"></div>
-  <div class="glow-field">
-    <div class="glow glow--emerald"></div>
-    <div class="glow glow--violet"></div>
-    <div class="glow glow--amber"></div>
-  </div>
-
   <div class="nav-shell">
     <nav class="nav">
-      <div class="nav__brand"><span class="dot"></span>PREM // BUILD</div>
+      <div class="nav__brand"><span class="dot"></span>Prem Build</div>
       <div class="nav__links">
         <a href="#builds">Builds</a>
         <a href="#how-it-works">Pipeline</a>
@@ -316,7 +274,7 @@
     <section class="hero">
       <div class="eyebrow reveal"><span class="dot"></span>Nightly CI &middot; GitHub Actions</div>
       <h1 class="headline reveal">Server plugins,<br><span class="accent">compiled while you sleep.</span></h1>
-      <p class="sub reveal">Every night, three upstream projects are pulled fresh, built from source, and packaged into ready-to-drop jars — no manual steps, no stale builds.</p>
+      <p class="sub reveal">Every night, five upstream projects are pulled fresh, built from source, and packaged into ready-to-drop jars — no manual steps, no stale builds.</p>
       <div class="hero__actions reveal">
         <a class="pill pill--primary group" href="#builds">
           <span>Browse builds</span>
@@ -331,7 +289,7 @@
     <div class="search-row reveal">
       <div class="search">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="1.5"/><path d="M21 21l-4.3-4.3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
-        <input id="searchInput" type="text" placeholder="Search projects — mcMMO, Iris, EcoItems…" autocomplete="off" />
+        <input id="searchInput" type="text" placeholder="Search projects — mcMMO, Iris, EcoItems, CoreProtect, Nascraft…" autocomplete="off" />
       </div>
     </div>
 
@@ -385,7 +343,7 @@
         <article class="shell card card--info reveal" id="how-it-works">
           <div class="core">
             <div class="card__top">
-              <div class="card__name" style="font-size:1.25rem;">How the pipeline runs</div>
+              <div class="card__name" style="font-size:1.2rem;">How the pipeline runs</div>
             </div>
             <div class="steps">
               <div class="step">
@@ -406,7 +364,7 @@
                 <div class="step__index">3</div>
                 <div>
                   <div class="step__title">Publish &amp; deploy</div>
-                  <div class="step__desc">Once all three builds finish, the jars are released and this page redeploys with fresh links.</div>
+                  <div class="step__desc">Once every build finishes, the jars are released and this page redeploys with fresh links.</div>
                 </div>
               </div>
             </div>
@@ -483,6 +441,80 @@
                 </span>
               </a>
               <a class="release-link" href="{{ECO_RELEASE_URL}}" target="_blank" rel="noopener">View release notes ↗</a>
+            </div>
+          </div>
+        </article>
+
+        <article class="shell card card--half reveal" data-search="coreprotect playpro">
+          <div class="core">
+            <div class="card__top">
+              <div class="card__name">CoreProtect</div>
+              <div class="status {{COREPROTECT_STATUS_CLASS}}"><span class="dot"></span>{{COREPROTECT_STATUS_TEXT}}</div>
+            </div>
+            <div class="card__source">
+              <a href="https://github.com/playPro/coreProtect" target="_blank" rel="noopener">playPro/coreProtect ↗</a>
+            </div>
+
+            <div class="meta-grid">
+              <div>
+                <span class="meta-label">Build</span>
+                <span class="meta-value">{{COREPROTECT_TAG}}</span>
+              </div>
+              <div>
+                <span class="meta-label">Compiled</span>
+                <span class="meta-value">{{COREPROTECT_DATE}}</span>
+              </div>
+              <div>
+                <span class="meta-label">Size</span>
+                <span class="meta-value">{{COREPROTECT_SIZE}}</span>
+              </div>
+            </div>
+
+            <div class="card__footer">
+              <a class="pill pill--download group" href="{{COREPROTECT_URL}}" download>
+                <span>Download {{COREPROTECT_JAR}}</span>
+                <span class="pill__icon">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M12 4v12M12 16l-5-5M12 16l5-5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M5 20h14" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+                </span>
+              </a>
+              <a class="release-link" href="{{COREPROTECT_RELEASE_URL}}" target="_blank" rel="noopener">View release notes ↗</a>
+            </div>
+          </div>
+        </article>
+
+        <article class="shell card card--half reveal" data-search="nascraft bounser">
+          <div class="core">
+            <div class="card__top">
+              <div class="card__name">Nascraft</div>
+              <div class="status {{NASCRAFT_STATUS_CLASS}}"><span class="dot"></span>{{NASCRAFT_STATUS_TEXT}}</div>
+            </div>
+            <div class="card__source">
+              <a href="https://github.com/Bounser/Nascraft" target="_blank" rel="noopener">Bounser/Nascraft ↗</a>
+            </div>
+
+            <div class="meta-grid">
+              <div>
+                <span class="meta-label">Build</span>
+                <span class="meta-value">{{NASCRAFT_TAG}}</span>
+              </div>
+              <div>
+                <span class="meta-label">Compiled</span>
+                <span class="meta-value">{{NASCRAFT_DATE}}</span>
+              </div>
+              <div>
+                <span class="meta-label">Size</span>
+                <span class="meta-value">{{NASCRAFT_SIZE}}</span>
+              </div>
+            </div>
+
+            <div class="card__footer">
+              <a class="pill pill--download group" href="{{NASCRAFT_URL}}" download>
+                <span>Download {{NASCRAFT_JAR}}</span>
+                <span class="pill__icon">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M12 4v12M12 16l-5-5M12 16l5-5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M5 20h14" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+                </span>
+              </a>
+              <a class="release-link" href="{{NASCRAFT_RELEASE_URL}}" target="_blank" rel="noopener">View release notes ↗</a>
             </div>
           </div>
         </article>
