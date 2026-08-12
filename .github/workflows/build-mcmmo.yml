@@ -1,10 +1,18 @@
 name: Build mcMMO
 
 on:
-  workflow_dispatch:
+  workflow_call:
+    outputs:
+      tag_name:
+        value: ${{ jobs.build-and-release.outputs.tag_name }}
+      jar_name:
+        value: ${{ jobs.build-and-release.outputs.jar_name }}
+      download_url:
+        value: ${{ jobs.build-and-release.outputs.download_url }}
+      file_size:
+        value: ${{ jobs.build-and-release.outputs.file_size }}
 
-  schedule:
-    - cron: '0 0 * * *'
+  workflow_dispatch:
 
 jobs:
   build-and-release:
@@ -12,6 +20,12 @@ jobs:
 
     permissions:
       contents: write
+
+    outputs:
+      tag_name: ${{ steps.release-info.outputs.tag_name }}
+      jar_name: ${{ steps.release-info.outputs.jar_name }}
+      download_url: ${{ steps.release-info.outputs.download_url }}
+      file_size: ${{ steps.release-info.outputs.file_size }}
 
     steps:
       # Step 1: Clone the repo and prep for build
@@ -35,13 +49,24 @@ jobs:
           cd mcMMO
           mvn -B package --file pom.xml
 
-      # Step 4: Create the GitHub Release and upload the artifact
+      # Step 4: Compute release metadata for this build
+      - name: Prepare release metadata
+        id: release-info
+        run: |
+          JAR_PATH="mcMMO/target/mcMMO.jar"
+          TAG="mcMMO-build-${{ github.run_number }}"
+          echo "tag_name=$TAG" >> "$GITHUB_OUTPUT"
+          echo "jar_name=$(basename "$JAR_PATH")" >> "$GITHUB_OUTPUT"
+          echo "file_size=$(stat -c%s "$JAR_PATH")" >> "$GITHUB_OUTPUT"
+          echo "download_url=https://github.com/${{ github.repository }}/releases/download/$TAG/$(basename "$JAR_PATH")" >> "$GITHUB_OUTPUT"
+
+      # Step 5: Create the GitHub Release and upload the artifact
       # This uses the popular `softprops/action-gh-release` action
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v1
         with:
           # The tag name for the release. Uses the run number to ensure uniqueness.
-          tag_name: mcMMO-build-${{ github.run_number }}
+          tag_name: ${{ steps.release-info.outputs.tag_name }}
 
           name: mcMMO Build ${{ github.run_number }}
 
@@ -49,6 +74,6 @@ jobs:
           body: |
             This is an automated build of mcMMO.
             Triggered by commit: ${{ github.sha }}
-          
+
           # Specifies the files to upload as release assets.
           files: mcMMO/target/mcMMO.jar

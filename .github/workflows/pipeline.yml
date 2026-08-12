@@ -1,0 +1,78 @@
+name: Build All & Deploy Pages
+
+on:
+  schedule:
+    - cron: '0 0 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build-mcmmo:
+    uses: ./.github/workflows/build-mcmmo.yml
+
+  build-iris:
+    uses: ./.github/workflows/build-iris.yml
+
+  build-ecoitems:
+    uses: ./.github/workflows/build-ecoitems.yml
+
+  # Runs only once all three builds above have finished (succeeded or not),
+  # so the page always reflects the latest completed run of every project.
+  deploy-pages:
+    needs: [build-mcmmo, build-iris, build-ecoitems]
+    if: always()
+    runs-on: ubuntu-latest
+
+    permissions:
+      pages: write
+      id-token: write
+      contents: read
+
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+
+      - name: Generate site
+        env:
+          REPO: ${{ github.repository }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          MCMMO_RESULT: ${{ needs.build-mcmmo.result }}
+          MCMMO_TAG: ${{ needs.build-mcmmo.outputs.tag_name }}
+          MCMMO_JAR: ${{ needs.build-mcmmo.outputs.jar_name }}
+          MCMMO_URL: ${{ needs.build-mcmmo.outputs.download_url }}
+          MCMMO_SIZE: ${{ needs.build-mcmmo.outputs.file_size }}
+          IRIS_RESULT: ${{ needs.build-iris.result }}
+          IRIS_TAG: ${{ needs.build-iris.outputs.tag_name }}
+          IRIS_JAR: ${{ needs.build-iris.outputs.jar_name }}
+          IRIS_URL: ${{ needs.build-iris.outputs.download_url }}
+          IRIS_SIZE: ${{ needs.build-iris.outputs.file_size }}
+          ECO_RESULT: ${{ needs.build-ecoitems.result }}
+          ECO_TAG: ${{ needs.build-ecoitems.outputs.tag_name }}
+          ECO_JAR: ${{ needs.build-ecoitems.outputs.jar_name }}
+          ECO_URL: ${{ needs.build-ecoitems.outputs.download_url }}
+          ECO_SIZE: ${{ needs.build-ecoitems.outputs.file_size }}
+        run: python3 site/generate.py
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
