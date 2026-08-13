@@ -6,10 +6,19 @@
 <title>Prem Build — Automated Plugin Builds</title>
 <meta name="description" content="Nightly automated compiles of mcMMO, Iris, EcoItems, CoreProtect and Nascraft, published as one-click downloads." />
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' rx='6' fill='%231d1d1f'/%3E%3Cpath d='M7 12.5l3.2 3.2L17 9' stroke='%23ffffff' stroke-width='1.7' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E" />
+<meta name="theme-color" content="#f5f5f7" media="(prefers-color-scheme: light)" />
+<meta name="theme-color" content="#0b0b0d" media="(prefers-color-scheme: dark)" />
+<meta property="og:title" content="Prem Build — Automated Plugin Builds" />
+<meta property="og:description" content="Nightly automated compiles of mcMMO, Iris, EcoItems, CoreProtect and Nascraft, published as one-click downloads." />
+<meta property="og:type" content="website" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet" />
 <style>
   :root{
     --bg:#f5f5f7;
     --bg-elevated:#ffffff;
+    --surface:#ffffff;
     --ink:#1d1d1f;
     --ink-dim:rgba(29,29,31,0.68);
     --ink-faint:rgba(29,29,31,0.46);
@@ -17,6 +26,7 @@
     --hairline-soft:rgba(0,0,0,0.06);
     --glass:rgba(255,255,255,0.6);
     --glass-strong:rgba(255,255,255,0.85);
+    --shadow-tint:31,35,50;
     --blue:#0071e3;
     --blue-hover:#0077ed;
     --blue-dim:rgba(0,113,227,0.1);
@@ -28,12 +38,43 @@
     --red-dim:rgba(255,59,48,0.12);
     --ease:cubic-bezier(0.32,0.72,0,1);
     --z-nav:40;
-    --font-display:-apple-system,BlinkMacSystemFont,"SF Pro Display","SF Pro Text","Helvetica Neue",Arial,sans-serif;
+    --font-display:"Space Grotesk",-apple-system,BlinkMacSystemFont,"SF Pro Display","Helvetica Neue",Arial,sans-serif;
     --font-body:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",Arial,sans-serif;
+    --font-mono:"JetBrains Mono",ui-monospace,"SF Mono",Menlo,monospace;
+    --invert-bg:#1d1d1f;
+    --invert-bg-hover:#000000;
+    --invert-ink:#ffffff;
+    color-scheme:light;
+  }
+
+  @media (prefers-color-scheme: dark){
+    :root{
+      --bg:#0b0b0d;
+      --bg-elevated:#18181b;
+      --surface:#1c1c1f;
+      --ink:#f2f2f4;
+      --ink-dim:rgba(242,242,244,0.66);
+      --ink-faint:rgba(242,242,244,0.42);
+      --hairline:rgba(255,255,255,0.1);
+      --hairline-soft:rgba(255,255,255,0.07);
+      --glass:rgba(24,24,27,0.6);
+      --glass-strong:rgba(24,24,27,0.82);
+      --shadow-tint:0,0,0;
+      --blue:#409cff;
+      --blue-hover:#5aacff;
+      --blue-dim:rgba(64,156,255,0.16);
+      --green-dim:rgba(48,209,88,0.18);
+      --amber-dim:rgba(255,159,10,0.18);
+      --red-dim:rgba(255,59,48,0.16);
+      --invert-bg:#f2f2f4;
+      --invert-bg-hover:#ffffff;
+      --invert-ink:#0b0b0d;
+      color-scheme:dark;
+    }
   }
 
   *{margin:0;padding:0;box-sizing:border-box;}
-  html{background:var(--bg);}
+  html{background:var(--bg);scroll-behavior:smooth;}
   body{
     background:var(--bg);
     color:var(--ink);
@@ -41,9 +82,28 @@
     -webkit-font-smoothing:antialiased;
     overflow-x:hidden;
     min-height:100dvh;
+    position:relative;
+  }
+  body::before{
+    content:"";
+    position:fixed;inset:0;
+    z-index:0;pointer-events:none;
+    opacity:0.035;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    mix-blend-mode:overlay;
   }
   a{color:inherit;text-decoration:none;}
   button{font-family:inherit;border:none;background:none;color:inherit;cursor:pointer;}
+
+  .skip-link{
+    position:absolute;top:-40px;left:12px;z-index:100;
+    background:var(--ink);color:var(--bg);
+    padding:10px 16px;border-radius:8px;font-size:13px;font-weight:600;
+    transition:top 0.25s var(--ease);
+  }
+  .skip-link:focus{top:12px;}
+
+  :focus-visible{outline:2px solid var(--blue);outline-offset:3px;border-radius:4px;}
 
   .wrap{position:relative;z-index:1;max-width:1180px;margin:0 auto;padding:0 24px;}
 
@@ -81,11 +141,12 @@
   .eyebrow{
     display:inline-flex;align-items:center;gap:8px;
     padding:6px 14px;border-radius:999px;
-    background:#fff;border:1px solid var(--hairline);
-    font-size:10.5px;font-weight:600;text-transform:uppercase;letter-spacing:0.2em;
+    background:var(--surface);border:1px solid var(--hairline);
+    font-family:var(--font-mono);
+    font-size:10.5px;font-weight:500;text-transform:uppercase;letter-spacing:0.16em;
     color:var(--ink-dim);
     margin-bottom:26px;
-    box-shadow:0 1px 2px rgba(0,0,0,0.02);
+    box-shadow:0 1px 2px rgba(var(--shadow-tint),0.04);
   }
   .eyebrow .dot{width:6px;height:6px;border-radius:50%;background:var(--green);}
   h1.headline{
@@ -132,15 +193,15 @@
     padding:12px 22px;
     color:var(--ink-dim);
     border:1px solid var(--hairline);
-    background:#fff;
+    background:var(--surface);
   }
   .pill--ghost:hover{color:var(--ink);border-color:rgba(0,0,0,0.16);}
   .pill--download{
-    background:var(--ink);color:#fff;
+    background:var(--invert-bg);color:var(--invert-ink);
     width:100%;justify-content:space-between;
   }
-  .pill--download .pill__icon{background:rgba(255,255,255,0.14);}
-  .pill--download:hover{background:#000;transform:translateY(-1px);}
+  .pill--download .pill__icon{background:rgba(128,128,128,0.2);}
+  .pill--download:hover{background:var(--invert-bg-hover);transform:translateY(-1px);}
 
   /* ---------- search ---------- */
   .search-row{display:flex;justify-content:center;margin:6px 0 46px;}
@@ -148,7 +209,7 @@
     display:flex;align-items:center;gap:10px;
     width:100%;max-width:420px;
     padding:12px 18px;border-radius:999px;
-    background:#fff;border:1px solid var(--hairline);
+    background:var(--surface);border:1px solid var(--hairline);
     transition:border-color 0.3s var(--ease),box-shadow 0.3s var(--ease);
   }
   .search:focus-within{border-color:var(--blue);box-shadow:0 0 0 4px var(--blue-dim);}
@@ -158,8 +219,13 @@
     font-size:14px;font-family:var(--font-body);
   }
   .search input::placeholder{color:var(--ink-faint);}
-  .search__clear{opacity:0.5;transition:opacity 0.3s var(--ease);display:none;}
+  .search__clear{
+    opacity:0.5;transition:opacity 0.3s var(--ease);display:none;
+    align-items:center;justify-content:center;flex-shrink:0;
+    width:18px;height:18px;border-radius:50%;
+  }
   .search__clear:hover{opacity:1;}
+  .search__clear.is-visible{display:flex;}
 
   /* ---------- section heading ---------- */
   .section-head{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:22px;flex-wrap:wrap;gap:12px;}
@@ -178,13 +244,19 @@
 
   /* card shell */
   .shell{
-    border-radius:1.6rem;
+    border-radius:1.4rem;
     background:var(--bg-elevated);
-    border:1px solid var(--hairline-soft);
-    box-shadow:0 1px 2px rgba(0,0,0,0.03), 0 16px 32px -20px rgba(0,0,0,0.12);
+    box-shadow:inset 0 0 0 1px rgba(var(--shadow-tint),0.06),
+      0 1px 2px rgba(var(--shadow-tint),0.04),
+      0 20px 36px -22px rgba(var(--shadow-tint),0.22);
     transition:transform 0.4s var(--ease),box-shadow 0.4s var(--ease);
   }
-  .shell:hover{transform:translateY(-2px);box-shadow:0 1px 2px rgba(0,0,0,0.03), 0 24px 40px -20px rgba(0,0,0,0.16);}
+  .shell:hover{
+    transform:translateY(-2px);
+    box-shadow:inset 0 0 0 1px rgba(var(--shadow-tint),0.08),
+      0 1px 2px rgba(var(--shadow-tint),0.04),
+      0 28px 46px -22px rgba(var(--shadow-tint),0.28);
+  }
   .core{
     height:100%;
     padding:30px;
@@ -214,14 +286,18 @@
   .status--fail{color:var(--red);}
   .status--unknown .dot{background:var(--amber);}
   .status--unknown{color:#b36b00;}
+  @media (prefers-color-scheme: dark){
+    .status--pass{color:#3ddb6e;}
+    .status--unknown{color:#ffb340;}
+  }
 
   .meta-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:26px;}
   .meta-grid div{display:flex;flex-direction:column;gap:4px;}
   .meta-label{font-size:10.5px;text-transform:uppercase;letter-spacing:0.13em;color:var(--ink-faint);}
-  .meta-value{font-size:14px;font-weight:600;color:var(--ink);}
+  .meta-value{font-family:var(--font-mono);font-variant-numeric:tabular-nums;font-size:13px;font-weight:600;color:var(--ink);letter-spacing:-0.01em;}
 
   .card__footer{margin-top:auto;display:flex;flex-direction:column;gap:12px;}
-  .card__filename{font-size:12.5px;color:var(--ink-faint);text-align:center;}
+  .card__filename{font-family:var(--font-mono);font-size:12px;color:var(--ink-faint);text-align:center;}
   .release-link{font-size:12.5px;color:var(--ink-faint);text-align:center;transition:color 0.3s var(--ease);}
   .release-link:hover{color:var(--blue);}
 
@@ -258,6 +334,8 @@
 </head>
 <body>
 
+  <a class="skip-link" href="#main">Skip to content</a>
+
   <div class="nav-shell">
     <nav class="nav">
       <div class="nav__brand"><span class="dot"></span>Prem Build</div>
@@ -269,7 +347,7 @@
     </nav>
   </div>
 
-  <main class="wrap">
+  <main class="wrap" id="main">
 
     <section class="hero">
       <div class="eyebrow reveal"><span class="dot"></span>Nightly CI &middot; GitHub Actions</div>
@@ -289,7 +367,10 @@
     <div class="search-row reveal">
       <div class="search">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="1.5"/><path d="M21 21l-4.3-4.3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
-        <input id="searchInput" type="text" placeholder="Search projects — mcMMO, Iris, EcoItems, CoreProtect, Nascraft…" autocomplete="off" />
+        <input id="searchInput" type="text" placeholder="Search projects — mcMMO, Iris, EcoItems, CoreProtect, Nascraft…" autocomplete="off" aria-label="Search projects" />
+        <button type="button" class="search__clear" id="searchClear" aria-label="Clear search">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+        </button>
       </div>
     </div>
 
@@ -555,9 +636,10 @@
 
     (function(){
       var input = document.getElementById('searchInput');
+      var clearBtn = document.getElementById('searchClear');
       var cards = Array.prototype.slice.call(document.querySelectorAll('.card[data-search]'));
       var empty = document.getElementById('emptyState');
-      input.addEventListener('input', function(){
+      function apply(){
         var q = input.value.trim().toLowerCase();
         var visible = 0;
         cards.forEach(function(card){
@@ -566,6 +648,13 @@
           if(match) visible++;
         });
         empty.style.display = visible === 0 ? 'block' : 'none';
+        clearBtn.classList.toggle('is-visible', q.length > 0);
+      }
+      input.addEventListener('input', apply);
+      clearBtn.addEventListener('click', function(){
+        input.value = '';
+        apply();
+        input.focus();
       });
     })();
   </script>
